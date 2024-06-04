@@ -4479,7 +4479,8 @@ namespace FastExpressionCompiler
                 var callExpr = (MethodCallExpression)expr;
                 var objExpr = callExpr.Object;
                 var method = callExpr.Method;
-                var methodParams = method.GetParameters(); // todo: @perf @mem find how to avoid the call, look at `NewNoByRefArgs` expressions as example
+                //avoid GetParameters as it is unavailable for MethodBuilder
+                var methodParams = MethodInfoHacks.GetParameterTypes(method); // todo: @perf @mem find how to avoid the call, look at `NewNoByRefArgs` expressions as example
 
                 var objIsValueType = false;
                 var loadObjByAddress = false;
@@ -4510,7 +4511,7 @@ namespace FastExpressionCompiler
                             EmitStoreAndLoadLocalVariableAddress(il, objExpr.Type);
 
                         for (var i = 0; i < parCount; i++)
-                            if (!TryEmit(callArgs.GetArgument(i), paramExprs, il, ref closure, setup, flags, methodParams[i].ParameterType.IsByRef ? i : -1))
+                            if (!TryEmit(callArgs.GetArgument(i), paramExprs, il, ref closure, setup, flags, methodParams[i].IsByRef ? i : -1))
                                 return false;
                     }
                     else
@@ -4522,7 +4523,7 @@ namespace FastExpressionCompiler
                         for (var i = 0; i < methodParams.Length; i++)
                         {
                             var argExpr = callArgs.GetArgument(i);
-                            var parType = methodParams[i].ParameterType;
+                            var parType = methodParams[i];
                             if (!TryEmit(argExpr, paramExprs, il, ref closure, setup, flags, parType.IsByRef ? i : -1))
                                 return false;
                             argVars.Add(EmitStoreLocalVariable(il, parType));
@@ -6455,6 +6456,24 @@ namespace FastExpressionCompiler
         [MethodImpl((MethodImplOptions)256)]
         public static void Demit(this ILGenerator il, string value, OpCode opcode) => il.Emit(opcode, value);
 #endif
+    }
+
+    /// <summary>Reflecting the internal methods to access parameter for MethodBuilder</summary>
+    [RequiresUnreferencedCode(Trimming.Message)]
+    public static class MethodInfoHacks
+    {
+        private delegate Type[] GetParameterTypesDelegate(MethodBase methodInfo);
+        private static GetParameterTypesDelegate _GetParameterTypesDelegate;
+
+        internal static Type[] GetParameterTypes(MethodInfo methodInfo)
+        {
+            if (_GetParameterTypesDelegate == null)
+            {
+                MethodInfo GetParameterTypes_methodInfo = typeof(MethodBase).GetMethod("GetParameterTypes", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+                _GetParameterTypesDelegate = (GetParameterTypesDelegate)Delegate.CreateDelegate(typeof(GetParameterTypesDelegate), GetParameterTypes_methodInfo);
+            }
+            return _GetParameterTypesDelegate(methodInfo);
+        }
     }
 
     /// <summary>Reflecting the internal methods to access the more performant for defining the local variable</summary>
