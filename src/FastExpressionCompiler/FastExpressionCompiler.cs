@@ -2608,7 +2608,7 @@ namespace FastExpressionCompiler
                 if (finallyExpr != null)
                 {
 #if DEMIT
-                    Debug.WriteLine("} finally {" + finallyExpr);
+                    Debug.WriteLine("} finally {" + finallyExpr.ToString());
 #endif
                     il.BeginFinallyBlock();
                     // it is important to ignore result for the finally block, because it should not return anything
@@ -4543,6 +4543,10 @@ namespace FastExpressionCompiler
                     }
                 }
 
+#if LIGHT_EXPRESSION
+                if (callExpr.IsTailcall)
+                    il.Demit(OpCodes.Tailcall);
+#endif
                 var ok = true;
                 if (!objIsValueType)
                     ok = EmitMethodCallOrVirtualCall(il, method);

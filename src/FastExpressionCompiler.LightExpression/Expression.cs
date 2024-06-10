@@ -48,7 +48,7 @@ namespace FastExpressionCompiler.LightExpression
 
     /// <summary>The base class and the Factory methods provider for the Expression.</summary>
     [System.Diagnostics.CodeAnalysis.RequiresUnreferencedCode(Trimming.Message)]
-    public abstract class Expression
+    public abstract partial class Expression
     {
         /// <summary>Expression node type.</summary>
         public abstract ExpressionType NodeType { get; }
@@ -3477,6 +3477,7 @@ namespace FastExpressionCompiler.LightExpression
         public virtual IReadOnlyList<Expression> Arguments => Tools.Empty<Expression>();
         public virtual int ArgumentCount => 0;
         public virtual Expression GetArgument(int i) => throw new NotImplementedException();
+        public virtual bool IsTailcall => false;
 #if SUPPORTS_VISITOR
         protected internal override Expression Accept(ExpressionVisitor visitor) => visitor.VisitMethodCall(this);
 #endif
