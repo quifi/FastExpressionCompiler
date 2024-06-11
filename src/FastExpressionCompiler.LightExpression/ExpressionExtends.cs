@@ -15,6 +15,8 @@ using FastExpressionCompiler.LightExpression.ImTools;
 
 namespace FastExpressionCompiler.LightExpression
 {
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
+
     public abstract partial class Expression
     {
         #region Implicit convert
@@ -142,6 +144,22 @@ namespace FastExpressionCompiler.LightExpression
 		}
         #endregion
 
+        #region Field and property
+        public static MemberExpression Field(Type type, String fieldName)
+            => Field(type.FindField(fieldName)
+                ?? throw new ArgumentException($"Declared field with the name '{fieldName}' is not found '{type}'", nameof(fieldName)));
+
+        public static MemberExpression Property(Type type, String propertyName)
+            => Property(type.FindProperty(propertyName)
+                ?? throw new ArgumentException($"Declared property with the name '{propertyName}' is not found '{type}'", nameof(propertyName)));
+
+        public static MemberExpression PropertyOrField(Type type, string memberName) =>
+            type.FindProperty(memberName) != null
+                ? Property(type, memberName) : Field(type, memberName);
+
+		public MemberExpression this[String memberName] => PropertyOrField(this, memberName);
+        #endregion
+
         #region Extra calls
         public static MethodCallExpression Tailcall(MethodInfo method, IReadOnlyList<Expression> arguments) =>
             new TailMethodCallExpression(null, method, arguments);
@@ -155,6 +173,9 @@ namespace FastExpressionCompiler.LightExpression
         public static MethodCallExpression Tailcall(Expression instance, string methodName, Type[] typeArguments, IReadOnlyList<Expression> arguments) =>
             Tailcall(instance, instance.Type.FindMethodOrThrow(methodName, typeArguments, arguments, TypeTools.InstanceMethods), arguments);
         #endregion
+
+        public static NewExpression New(Type type, IReadOnlyList<Expression> arguments) =>
+            New(type.FindConstructorOrThrow(arguments), arguments);
     }
 
     public sealed class TailMethodCallExpression : ManyArgumentsMethodCallExpression

@@ -2150,6 +2150,53 @@ namespace FastExpressionCompiler.LightExpression
             return bestMatch;
         }
 
+        internal static ConstructorInfo FindConstructorOrThrow(this Type type, IReadOnlyList<Expression> argExprs)
+        {
+            argExprs = argExprs ?? Tools.Empty<Expression>();
+            var argExprCount = argExprs.Count;
+            var methods = type.GetConstructors(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+
+            ConstructorInfo bestMatch = null;
+            var bestScore = 0;
+            for (var i = 0; i < methods.Length; i++)
+            {
+                var m = methods[i];
+
+                var mPars = m.GetParameters();
+                if (mPars.Length != argExprCount)
+                    continue;
+
+                if (argExprs.Count == 0)
+                {
+                    if (m.IsPublic)
+                        return m;
+                    if (bestMatch != null)
+                        return bestMatch;
+                    bestMatch = m; // proceed search
+                }
+                else
+                {
+                    var score = GetScoreOfExpressionsAssignableToParams(argExprs, mPars);
+                    if (score == 0)
+                        continue;
+                    if (score == bestScore)
+                    {
+                        if (m.IsPublic == bestMatch.IsPublic) // prefer public over non-public 
+                            throw new InvalidOperationException($"More than one non-generic method '{m.Name}' in the type '{type.ToCode()}' is compatible with the supplied arguments.");
+                        if (!m.IsPublic)
+                            continue;
+                    }
+                    bestMatch = m;
+                    bestScore = score;
+                }
+            }
+
+            if (bestMatch == null)
+                throw new InvalidOperationException($"The constructor is not found in the type '{type.ToCode()}'");
+
+            return bestMatch;
+        }
+
         // 0 - not assignable
         // 3 per parameter - same type
         // 2 per parameter - base type
