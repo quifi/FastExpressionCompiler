@@ -190,12 +190,12 @@ namespace FastExpressionCompiler.LightExpression
     [System.Diagnostics.CodeAnalysis.RequiresUnreferencedCode(Trimming.Message)]
     public abstract class UserDataExpression : Expression
     {
-        public sealed override ExpressionType NodeType => (ExpressionType)(-1);
+        public sealed override ExpressionType NodeType => ExpressionType.Default;
         public override Type Type => typeof(void);
 #if SUPPORTS_VISITOR
-        protected internal override Expression Accept(ExpressionVisitor visitor) => throw new NotImplementedException();
+        protected internal override Expression Accept(ExpressionVisitor visitor) => this;
 #endif
-        internal override SysExpr CreateSysExpression(ref SmallList<LightAndSysExpr> _) => throw new NotImplementedException();
+        internal override SysExpr CreateSysExpression(ref SmallList<LightAndSysExpr> _) => SysExpr.Empty();
     }
 
     /// <summary>A dummy expression that can containes user data</summary>
