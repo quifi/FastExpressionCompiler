@@ -4548,6 +4548,11 @@ namespace FastExpressionCompiler
                     il.Demit(OpCodes.Tailcall);
 #endif
                 var ok = true;
+#if LIGHT_EXPRESSION
+                if (callExpr.NoVirtual)
+                    ok = EmitMethodCall(il, method);
+                else
+#endif
                 if (!objIsValueType)
                     ok = EmitMethodCallOrVirtualCall(il, method);
                 else if (method.DeclaringType != typeof(Enum) &&

@@ -21,127 +21,81 @@ namespace FastExpressionCompiler.LightExpression
     {
         #region Implicit convert
         public static implicit operator Expression(Int32 value)
-		{
-			return Constant(value);
-		}
+		    => Constant(value);
 
 		public static implicit operator Expression(Single value)
-		{
-			return Constant(value);
-		}
+		    => Constant(value);
 
 		public static implicit operator Expression(Double value)
-		{
-			return Constant(value);
-		}
+		    => Constant(value);
 
 		public static implicit operator Expression(Boolean value)
-		{
-			return Constant(value);
-		}
+		    => Constant(value);
 
 		public static implicit operator Expression(String value)
-		{
-			return Constant(value);
-		}
+		    => Constant(value);
 
 		public static implicit operator Expression(Char value)
-		{
-			return Constant(value);
-		}
+		    => Constant(value);
         #endregion
 
         #region Operator overloading
         public static Expression operator + (Expression left, Expression right)
-		{
-			return Add(left, right);
-		}
+		    => Add(left, right);
 
 		public static Expression operator + (Expression expr)
-		{
-			return UnaryPlus(expr);
-		}
+		    => UnaryPlus(expr);
 
 		public static Expression operator - (Expression left, Expression right)
-		{
-			return Subtract(left, right);
-		}
+		    => Subtract(left, right);
 
 		public static Expression operator - (Expression expr)
-		{
-			return Negate(expr);
-		}
+		    => Negate(expr);
 
 		public static Expression operator * (Expression left, Expression right)
-		{
-			return Multiply(left, right);
-		}
+		    => Multiply(left, right);
 
 		public static Expression operator / (Expression left, Expression right)
-		{
-			return Divide(left, right);
-		}
+		    => Divide(left, right);
 
 		public static Expression operator % (Expression left, Expression right)
-		{
-			return Modulo(left, right);
-		}
+		    => Modulo(left, right);
 
 		/// <summary>
 		/// Caution: use LOGICAL operator to make CONDITIONAL LOGICAL expression
 		/// </summary>
 		public static Expression operator & (Expression left, Expression right)
-		{
-			return AndAlso(left, right);
-		}
+		    => AndAlso(left, right);
 
 		/// <summary>
 		/// Caution: use LOGICAL operator to make CONDITIONAL LOGICAL expression
 		/// </summary>
 		public static Expression operator | (Expression left, Expression right)
-		{
-			return AndAlso(left, right);
-		}
+		    => AndAlso(left, right);
 
 		public static Expression operator ^ (Expression left, Expression right)
-		{
-			return ExclusiveOr(left, right);
-		}
+		    => ExclusiveOr(left, right);
 
 		public static Expression operator ! (Expression expr)
-		{
-			return Not(expr);
-		}
+		    => Not(expr);
 
 		public static Expression operator < (Expression left, Expression right)
-		{
-			return LessThan(left, right);
-		}
+		    => LessThan(left, right);
 
 		public static Expression operator > (Expression left, Expression right)
-		{
-			return GreaterThan(left, right);
-		}
+		    => GreaterThan(left, right);
 
 		public static Expression operator <= (Expression left, Expression right)
-		{
-			return LessThanOrEqual(left, right);
-		}
+		    => LessThanOrEqual(left, right);
 
 		public static Expression operator >= (Expression left, Expression right)
-		{
-			return GreaterThanOrEqual(left, right);
-		}
+		    => GreaterThanOrEqual(left, right);
 
 		public static Expression operator << (Expression left, Expression right)
-		{
-			return LeftShift(left, right);
-		}
+		    => LeftShift(left, right);
 
 		public static Expression operator >> (Expression left, Expression right)
-		{
-			return RightShift(left, right);
-		}
+		    => RightShift(left, right);
         #endregion
 
         #region Field and property
@@ -153,38 +107,45 @@ namespace FastExpressionCompiler.LightExpression
             => Property(type.FindProperty(propertyName)
                 ?? throw new ArgumentException($"Declared property with the name '{propertyName}' is not found '{type}'", nameof(propertyName)));
 
-        public static MemberExpression PropertyOrField(Type type, string memberName) =>
-            type.FindProperty(memberName) != null
-                ? Property(type, memberName) : Field(type, memberName);
+        public static MemberExpression PropertyOrField(Type type, string memberName)
+            => type.FindProperty(memberName) != null ? Property(type, memberName) : Field(type, memberName);
 
 		public MemberExpression this[String memberName] => PropertyOrField(this, memberName);
         #endregion
 
         #region Extra calls
-        public static MethodCallExpression Tailcall(MethodInfo method, IReadOnlyList<Expression> arguments) =>
-            new TailMethodCallExpression(null, method, arguments);
+        public static MethodCallExpression CallExtended(MethodInfo method, bool isTailcall, bool noVirtual, IReadOnlyList<Expression> arguments)
+            => new ExtendedMethodCallExpression(null, method, isTailcall, noVirtual, arguments);
 
-        public static MethodCallExpression Tailcall(Expression instance, MethodInfo method, IReadOnlyList<Expression> arguments) =>
-            new TailMethodCallExpression(instance, method, arguments);
+        public static MethodCallExpression CallExtended(Expression instance, MethodInfo method, bool isTailcall, bool noVirtual, IReadOnlyList<Expression> arguments)
+            => new ExtendedMethodCallExpression(instance, method, isTailcall, noVirtual, arguments);
 
-        public static MethodCallExpression Tailcall(Type type, string methodName, Type[] typeArguments, IReadOnlyList<Expression> arguments) =>
-            Tailcall(null, type.FindMethodOrThrow(methodName, typeArguments, arguments, TypeTools.StaticMethods), arguments);
+        public static MethodCallExpression CallExtended(Type type, string methodName, Type[] typeArguments, bool isTailcall, bool noVirtual, IReadOnlyList<Expression> arguments)
+            => CallExtended(null, type.FindMethodOrThrow(methodName, typeArguments, arguments, TypeTools.StaticMethods), isTailcall, noVirtual, arguments);
 
-        public static MethodCallExpression Tailcall(Expression instance, string methodName, Type[] typeArguments, IReadOnlyList<Expression> arguments) =>
-            Tailcall(instance, instance.Type.FindMethodOrThrow(methodName, typeArguments, arguments, TypeTools.InstanceMethods), arguments);
+        public static MethodCallExpression CallExtended(Expression instance, string methodName, Type[] typeArguments, bool isTailcall, bool noVirtual, IReadOnlyList<Expression> arguments)
+            => CallExtended(instance, instance.Type.FindMethodOrThrow(methodName, typeArguments, arguments, TypeTools.InstanceMethods), isTailcall, noVirtual, arguments);
         #endregion
 
-        public static NewExpression New(Type type, IReadOnlyList<Expression> arguments) =>
-            New(type.FindConstructorOrThrow(arguments), arguments);
+        public static NewExpression New(Type type, IReadOnlyList<Expression> arguments)
+            => New(type.FindConstructorOrThrow(arguments), arguments);
     }
-
-    public sealed class TailMethodCallExpression : ManyArgumentsMethodCallExpression
+    
+    public sealed class ExtendedMethodCallExpression : ManyArgumentsMethodCallExpression
     {
-        public override bool IsTailcall => true;
+        private readonly bool _IsTailcall;
+        private readonly bool _NoVirtual;
+        public override bool IsTailcall => _IsTailcall;
+        public override bool NoVirtual => _NoVirtual;
         public override Expression Object { get; }
 
-        internal TailMethodCallExpression(Expression instance, MethodInfo method, IReadOnlyList<Expression> arguments)
-            : base(method, arguments) => Object = instance;
+        internal ExtendedMethodCallExpression(Expression instance, MethodInfo method, bool isTailcall, bool noVirtual, IReadOnlyList<Expression> arguments)
+            : base(method, arguments)
+        {
+            Object = instance;
+            _IsTailcall = isTailcall;
+            _NoVirtual = noVirtual;
+        }
     }
 
     [System.Diagnostics.CodeAnalysis.RequiresUnreferencedCode(Trimming.Message)]

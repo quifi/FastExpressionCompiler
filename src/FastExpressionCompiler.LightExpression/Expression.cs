@@ -3525,6 +3525,7 @@ namespace FastExpressionCompiler.LightExpression
         public virtual int ArgumentCount => 0;
         public virtual Expression GetArgument(int i) => throw new NotImplementedException();
         public virtual bool IsTailcall => false;
+        public virtual bool NoVirtual => false;
 #if SUPPORTS_VISITOR
         protected internal override Expression Accept(ExpressionVisitor visitor) => visitor.VisitMethodCall(this);
 #endif
