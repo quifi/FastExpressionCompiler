@@ -71,7 +71,7 @@ namespace FastExpressionCompiler.LightExpression
 		/// Caution: use LOGICAL operator to make CONDITIONAL LOGICAL expression
 		/// </summary>
 		public static Expression operator | (Expression left, Expression right)
-		    => AndAlso(left, right);
+		    => OrElse(left, right);
 
 		public static Expression operator ^ (Expression left, Expression right)
 		    => ExclusiveOr(left, right);
