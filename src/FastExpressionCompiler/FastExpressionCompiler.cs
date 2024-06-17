@@ -2696,7 +2696,7 @@ namespace FastExpressionCompiler
                         // means the parameter is the instance for what method is called or the instance for the member access, see #274, #283
                         (parent & (ParentFlags.MemberAccess | ParentFlags.InstanceAccess)) != 0 &
                         // but the parameter is not used as an index #281, #265, nor it is an arithmetic #352
-                        (parent & (ParentFlags.IndexAccess | ParentFlags.Arithmetic)) == 0;
+                        (parent & (/*ParentFlags.IndexAccess | */ParentFlags.Arithmetic)) == 0;
 
                     closure.LastEmitIsAddress = !isParamOrVarByRef & (isArgByRef | valueTypeParamCallOrMemberAccess);
 
@@ -5632,6 +5632,8 @@ namespace FastExpressionCompiler
             public static bool EmitMethodCallOrVirtualCall(ILGenerator il, MethodInfo method)
             {
                 il.Demit(method.IsVirtual ? OpCodes.Callvirt : OpCodes.Call, method);
+                if (method.ReturnType.IsByRef)
+                    EmitLoadIndirectlyByRef(il, method.ReturnType.GetElementType());
                 // todo: @feature EmitCall is specifically for the varags method and not for normal C# conventions methods,
                 // for those you need to call Emit(OpCodes.Call|Callvirt, methodInfo).
                 // So for now the varargs methods are not supported yet.
@@ -5642,6 +5644,8 @@ namespace FastExpressionCompiler
             public static bool EmitVirtualMethodCall(ILGenerator il, MethodInfo method)
             {
                 il.Demit(OpCodes.Callvirt, method);
+                if (method.ReturnType.IsByRef)
+                    EmitLoadIndirectlyByRef(il, method.ReturnType.GetElementType());
                 // todo: @feature EmitCall is specifically for the varags method and not for normal C# conventions methods,
                 // for those you need to call Emit(OpCodes.Call|Callvirt, methodInfo).
                 // So for now the varargs methods are not supported yet.
@@ -5652,6 +5656,8 @@ namespace FastExpressionCompiler
             public static bool EmitMethodCall(ILGenerator il, MethodInfo method)
             {
                 il.Demit(OpCodes.Call, method);
+                if (method.ReturnType.IsByRef)
+                    EmitLoadIndirectlyByRef(il, method.ReturnType.GetElementType());
                 // todo: @feature EmitCall is specifically for the varags method and not for normal C# conventions methods,
                 // for those you need to call Emit(OpCodes.Call|Callvirt, methodInfo).
                 // So for now the varargs methods are not supported yet.
